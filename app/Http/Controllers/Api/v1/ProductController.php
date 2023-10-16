@@ -18,7 +18,7 @@ class ProductController extends Controller
         if (!empty($invalidFields)) {
             return response()->json([
                 'status' => 400,
-                'message' => 'Invalid fields: ' . implode(', ', $invalidFields),
+                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
             ]);
         }
         $products = Product::all();
@@ -45,7 +45,7 @@ class ProductController extends Controller
         if (!empty($invalidFields)) {
             return response()->json([
                 'status' => 400,
-                'message' => 'Invalid fields: ' . implode(', ', $invalidFields),
+                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
             ]);
         }
 
@@ -66,14 +66,16 @@ class ProductController extends Controller
     }
 
     public function store(Request $request)
+
     {
+
         $allowedFields = ['product_name', 'price', 'parent_category_id'];
         $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
 
         if (!empty($invalidFields)) {
             return response()->json([
                 'status' => 400,
-                'message' => 'Invalid fields: ' . implode(', ', $invalidFields),
+                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
             ]);
         }
 
@@ -122,7 +124,7 @@ class ProductController extends Controller
         if (!empty($invalidFields)) {
             return response()->json([
                 'status' => 400,
-                'message' => 'Invalid fields: ' . implode(', ', $invalidFields),
+                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
             ]);
         }
 
@@ -130,7 +132,7 @@ class ProductController extends Controller
             'product_name' => 'sometimes|unique:products|max:255',
             'price' => 'sometimes|numeric',
             'parent_category_id' => [
-                'someytimes',
+                'sometimes',
                 'numeric',
                 Rule::exists('parent_categories', 'id')->where(function ($query) {
                     $query->where('status', 1);
@@ -169,15 +171,23 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        return response()->json([
-            'status' => 200,
-            'data' => [
-                'product' => [
-                    'id' => $id,
-                    'name' => 'Product ' . $id,
-                    'price' => $id * 1000
-                ]
-            ]
-        ]);
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Product with id ' . $id . ' not found'
+            ]);
+        }
+        if (!$product->delete()) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'Product could not be deleted',
+            ]);
+        } else {
+            return response()->json([
+                'status' => 200,
+                'message' => 'Product deleted successfully',
+            ]);
+        }
     }
 }

@@ -25,10 +25,10 @@ class UserController extends Controller
                 'error' => 'Invalid Credentials'
             ], 401);
         }
-        $user=User::where('email',$request->email)->first();
-        $user->remember_token=$user->createToken('api_token')->plainTextToken;
+        $user = User::where('email', $request->email)->first();
+        $user->remember_token = $user->createToken('api_token')->plainTextToken;
         $user->save();
-        $token=$user->remember_token;
+        $token = $user->remember_token;
         return [
             'status' => 'success',
             'token_type' => 'Bearer',

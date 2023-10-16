@@ -23,15 +23,7 @@ Route::POST('/v1/token', [UserController::class, 'token']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('v1')->group(function () {
-        try {
-            Route::apiResource('/product', ProductController::class);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
-        }
-
+        Route::apiResource('/product', ProductController::class);
         Route::apiResource('/category', CategoryController::class);
     });
 });
