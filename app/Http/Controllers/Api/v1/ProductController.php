@@ -10,26 +10,32 @@ use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
-    {
-        $allowedFields = [];
-        $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
 
+    private function checkAllowedFields(Request $request, array $allowedFields)
+    {
+        $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
         if (!empty($invalidFields)) {
             return response()->json([
                 'status' => 400,
                 'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
             ]);
         }
-        $products = Product::all();
+        return null;
+    }
+
+    public function index(Request $request)
+    {
+        $response = $this->checkAllowedFields($request, []);
+        if ($response) return $response;
+        $products = Product::with('parent_category')->get();
         if (count($products) == 0) {
             return response()->json([
-                'status' => '404',
+                'status' => 404,
                 'message' => 'No products found'
             ]);
         } else {
             return response()->json([
-                'status' => '400',
+                'status' => 200,
                 'data' => [
                     'products' => $products
                 ]
@@ -39,25 +45,17 @@ class ProductController extends Controller
 
     public function show(Request $request, $id)
     {
-        $allowedFields = [];
-        $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
-
-        if (!empty($invalidFields)) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
-            ]);
-        }
-
+        $response = $this->checkAllowedFields($request, []);
+        if ($response) return $response;
         $products = Product::find($id);
         if (!$products) {
             return response()->json([
-                'status' => '404',
+                'status' => 404,
                 'message' => 'No products found with id ' . $id
             ]);
         } else {
             return response()->json([
-                'status' => 400,
+                'status' => 200,
                 'data' => [
                     'products' => $products
                 ]
@@ -69,15 +67,8 @@ class ProductController extends Controller
 
     {
 
-        $allowedFields = ['product_name', 'price', 'parent_category_id'];
-        $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
-
-        if (!empty($invalidFields)) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
-            ]);
-        }
+        $response = $this->checkAllowedFields($request, ['product_name', 'price', 'parent_category_id']);
+        if ($response) return $response;
 
         $validation = Validator::make($request->all(), [
             'product_name' => 'required|unique:products|max:255',
@@ -118,15 +109,8 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $allowedFields = ['product_name', 'price', 'parent_category_id'];
-        $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
-
-        if (!empty($invalidFields)) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'Undefined fields: ' . implode(', ', $invalidFields),
-            ]);
-        }
+        $response = $this->checkAllowedFields($request, ['product_name', 'price', 'parent_category_id']);
+        if ($response) return $response;
 
         $validation = Validator::make($request->all(), [
             'product_name' => 'sometimes|unique:products|max:255',
@@ -169,8 +153,11 @@ class ProductController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $response = $this->checkAllowedFields($request, []);
+        if ($response) return $response;
+
         $product = Product::find($id);
         if (!$product) {
             return response()->json([
