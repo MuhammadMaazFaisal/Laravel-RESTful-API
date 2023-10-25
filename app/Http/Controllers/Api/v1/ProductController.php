@@ -13,6 +13,14 @@ class ProductController extends Controller
 
     private function checkAllowedFields(Request $request, array $allowedFields)
     {
+        $requestData = $request->all();
+
+        if (empty($allowedFields) && !empty($requestData)) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'No fields are allowed',
+            ]);
+        }
         $invalidFields = array_diff(array_keys($request->all()), $allowedFields);
         if (!empty($invalidFields)) {
             return response()->json([
